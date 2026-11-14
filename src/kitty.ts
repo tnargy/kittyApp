@@ -4,10 +4,13 @@
 // visit can never make things worse — coming back after a gap may instead
 // leave a little surprise.
 
+export type KittyColor = 'orange' | 'grey' | 'midnight' | 'calico'
+
 export interface KittyState {
   id: string
   name: string
   createdAt: number
+  color: KittyColor
   /** 0..100, 100 = full */
   hunger: number
   /** 0..100, 100 = very loved */
@@ -35,6 +38,7 @@ export function initialKitty(name: string, now = Date.now()): KittyState {
     id: 'kitty',
     name,
     createdAt: now,
+    color: 'orange',
     hunger: 70,
     affection: 70,
     litter: 80,

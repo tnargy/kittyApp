@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import KittyFace, { type KittyMood } from './components/KittyFace'
 import MatchingGame from './components/MatchingGame'
 import { loadKitty, logEvent, saveKitty } from './db'
 import {
@@ -7,9 +8,27 @@ import {
   initialKitty,
   returnSurprise,
   type KittyAction,
+  type KittyColor,
   type KittyState,
 } from './kitty'
+import { isSoundOn, playSound, setSoundOn, type SoundName } from './sound'
 import './index.css'
+
+const ACTION_SOUNDS: Record<KittyAction, SoundName> = {
+  feed: 'munch',
+  pet: 'mrrp',
+  groom: 'mrrp',
+  cleanLitter: 'sweep',
+  bedtime: 'lullaby',
+  wake: 'wake',
+}
+
+function moodFor(kitty: KittyState, anim: string): KittyMood {
+  if (kitty.sleeping) return 'sleepy'
+  if (anim === 'happy' || anim === 'purr') return 'happy'
+  if (kitty.hunger < 40) return 'hungry'
+  return 'idle'
+}
 
 const ACTION_LABELS: Record<KittyAction, string> = {
   feed: '🍽️ Feed',
@@ -29,9 +48,17 @@ const ACTION_MESSAGES: Record<KittyAction, string> = {
   wake: 'stretches and blinks awake!',
 }
 
-function NeedBar({ label, value }: { label: string; value: number }) {
+function NeedBar({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: number
+  tone: 'hunger' | 'affection' | 'litter' | 'energy'
+}) {
   return (
-    <div className="need">
+    <div className={`need ${tone}`}>
       <span>{label}</span>
       <div className="bar">
         <div className="fill" style={{ width: `${value}%` }} />
@@ -79,6 +106,9 @@ export default function App() {
   const [surprise, setSurprise] = useState<string | null>(null)
   const [view, setView] = useState<'kitty' | 'play'>('kitty')
   const [anim, setAnim] = useState<'idle' | 'happy' | 'purr'>('idle')
+  const [soundOn, setSoundOnState] = useState(isSoundOn())
+  const [hearts, setHearts] = useState<{ id: number; x: number }[]>([])
+  const [snack, setSnack] = useState(false)
   const animTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -97,7 +127,11 @@ export default function App() {
       const now = Date.now()
       const surprise = returnSurprise(saved.lastVisitAt, now)
       if (surprise) setSurprise(surprise)
-      const visited = { ...saved, lastVisitAt: now }
+      const visited = {
+        ...saved,
+        lastVisitAt: now,
+        color: saved.color ?? 'orange',
+      }
       await saveKitty(visited)
       setKitty(visited)
     })()
@@ -118,10 +152,37 @@ export default function App() {
     await logEvent(action, `${kitty.name} — ${ACTION_MESSAGES[action]}`)
     setKitty(next)
     setMessage(`${kitty.name} ${ACTION_MESSAGES[action]}`)
+    playSound(ACTION_SOUNDS[action])
+    if (action === 'feed') {
+      setSnack(true)
+      setTimeout(() => setSnack(false), 1000)
+    }
+    if (action === 'pet' || action === 'groom') {
+      const burst = [0, 1, 2].map((i) => ({
+        id: Date.now() + i,
+        x: 20 + i * 25,
+      }))
+      setHearts(burst)
+      setTimeout(() => setHearts([]), 1200)
+    }
     // Brief reaction animation, then back to the idle bob.
     if (animTimer.current) clearTimeout(animTimer.current)
     setAnim(action === 'pet' ? 'purr' : 'happy')
     animTimer.current = setTimeout(() => setAnim('idle'), 1200)
+  }
+
+  async function handleColor(color: KittyColor) {
+    if (!kitty) return
+    const next = { ...kitty, color }
+    await saveKitty(next)
+    setKitty(next)
+  }
+
+  function handleSoundToggle() {
+    const next = !soundOn
+    setSoundOn(next)
+    setSoundOnState(next)
+    if (next) playSound('pop')
   }
 
   async function handlePuzzleWin() {
@@ -130,6 +191,7 @@ export default function App() {
     await saveKitty(next)
     await logEvent('puzzle-solved', `${kitty.name} solved the matching puzzle`)
     setKitty(next)
+    playSound('chime')
   }
 
   if (kitty === undefined) {
@@ -146,6 +208,7 @@ export default function App() {
     return (
       <MatchingGame
         kittyName={kitty.name}
+        kittyColor={kitty.color}
         onWin={() => void handlePuzzleWin()}
         onBack={() => setView('kitty')}
       />
@@ -154,25 +217,68 @@ export default function App() {
 
   return (
     <main className="kitty-view">
+      <button
+        type="button"
+        className="sound-toggle"
+        onClick={handleSoundToggle}
+        aria-label={soundOn ? 'Mute sounds' : 'Unmute sounds'}
+      >
+        {soundOn ? '🔊' : '🔇'}
+      </button>
       {surprise && (
         <p className="surprise">
           Welcome back! {kitty.name} missed you and {surprise}
         </p>
       )}
-      <div
-        className={`kitty-face ${kitty.sleeping ? 'sleeping' : anim}`}
-        aria-hidden
-      >
-        {kitty.sleeping ? '😴' : '🐱'}
+      <div className="face-wrap">
+        <div
+          className={`kitty-face ${kitty.sleeping ? 'sleeping' : anim}`}
+          aria-hidden
+        >
+          <KittyFace color={kitty.color} mood={moodFor(kitty, anim)} />
+        </div>
+        {snack && (
+          <span className="snack" aria-hidden>
+            🐟
+          </span>
+        )}
+        {hearts.map((heart) => (
+          <span
+            key={heart.id}
+            className="heart"
+            style={{ left: `${heart.x}%` }}
+            aria-hidden
+          >
+            💕
+          </span>
+        ))}
       </div>
       <h1>{kitty.name}</h1>
       {message && <p className="message">{message}</p>}
 
       <div className="needs">
-        <NeedBar label="🍽️ Full" value={kitty.hunger} />
-        <NeedBar label="💕 Loved" value={kitty.affection} />
-        <NeedBar label="🧹 Litter" value={kitty.litter} />
-        <NeedBar label="⚡ Energy" value={kitty.energy} />
+        <NeedBar label="🍽️ Full" value={kitty.hunger} tone="hunger" />
+        <NeedBar label="💕 Loved" value={kitty.affection} tone="affection" />
+        <NeedBar label="🧹 Litter" value={kitty.litter} tone="litter" />
+        <NeedBar label="⚡ Energy" value={kitty.energy} tone="energy" />
+      </div>
+
+      <div
+        className="colors"
+        role="group"
+        aria-label="Choose the kitty's color"
+      >
+        {(['orange', 'grey', 'midnight', 'calico'] as KittyColor[]).map(
+          (color) => (
+            <button
+              key={color}
+              type="button"
+              className={`swatch ${color}${kitty.color === color ? ' selected' : ''}`}
+              onClick={() => void handleColor(color)}
+              aria-label={`${color} kitty`}
+            />
+          ),
+        )}
       </div>
 
       <div className="actions">

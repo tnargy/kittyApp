@@ -47,3 +47,9 @@ describe('returnSurprise', () => {
     expect(surprise).toBeTruthy()
   })
 })
+
+describe('initialKitty', () => {
+  it('starts orange', () => {
+    expect(initialKitty('Milo').color).toBe('orange')
+  })
+})
