@@ -1,8 +1,8 @@
 // Pure kitty state logic for the v1 Tamagotchi.
-// Rule from the plan: needs only change while the app is open. Nothing
-// decays, drains, or gets worse while the app is closed, and missing a
-// visit can never make things worse — coming back after a gap may instead
-// leave a little surprise.
+// Rule (changed 2026-11-14, Grant's call): needs deplete over real time,
+// whether the app is open or not. Coming back after a gap may still leave
+// a little surprise, but the bars themselves now drain — there is no other
+// penalty, and a bar at 0 is just empty, never a punishment.
 
 export type KittyColor = 'orange' | 'grey' | 'midnight' | 'calico'
 
@@ -21,6 +21,8 @@ export interface KittyState {
   energy: number
   sleeping: boolean
   lastVisitAt: number
+  /** Last time decay was applied (load or tick). */
+  lastDecayAt: number
 }
 
 export type KittyAction =
@@ -45,6 +47,39 @@ export function initialKitty(name: string, now = Date.now()): KittyState {
     energy: 90,
     sleeping: false,
     lastVisitAt: now,
+    lastDecayAt: now,
+  }
+}
+
+/** Points lost per minute of real time. Roughly: hunger empty in ~12h,
+ * affection in ~17h, litter in ~24h, energy in ~14h while awake. */
+const DECAY_PER_MINUTE = {
+  hunger: 0.14,
+  affection: 0.1,
+  litter: 0.07,
+  energyAwake: 0.12,
+  /** Energy recovered per minute while asleep. */
+  energyAsleep: 0.5,
+} as const
+
+/**
+ * Apply real-time decay for the minutes since lastDecayAt. Pure: callers
+ * pass `now` and save the result. No-op when no time has passed. Bars
+ * clamp at 0 — an empty bar is just empty, never a punishment.
+ */
+export function decayKitty(kitty: KittyState, now = Date.now()): KittyState {
+  const minutes = (now - kitty.lastDecayAt) / 60_000
+  if (minutes <= 0) return kitty
+  const energyDelta = kitty.sleeping
+    ? DECAY_PER_MINUTE.energyAsleep * minutes
+    : -DECAY_PER_MINUTE.energyAwake * minutes
+  return {
+    ...kitty,
+    hunger: clamp(kitty.hunger - DECAY_PER_MINUTE.hunger * minutes),
+    affection: clamp(kitty.affection - DECAY_PER_MINUTE.affection * minutes),
+    litter: clamp(kitty.litter - DECAY_PER_MINUTE.litter * minutes),
+    energy: clamp(kitty.energy + energyDelta),
+    lastDecayAt: now,
   }
 }
 

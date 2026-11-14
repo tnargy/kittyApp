@@ -5,6 +5,7 @@ import { loadKitty, logEvent, saveKitty } from './db'
 import {
   applyAction,
   applyPuzzleWin,
+  decayKitty,
   initialKitty,
   returnSurprise,
   type KittyAction,
@@ -28,6 +29,18 @@ function moodFor(kitty: KittyState, anim: string): KittyMood {
   if (anim === 'happy' || anim === 'purr') return 'happy'
   if (kitty.hunger < 40) return 'hungry'
   return 'idle'
+}
+
+/**
+ * Playable games. The second game slots in here when Grant picks it —
+ * add its id to GAME_IDS and a branch in the play view. Play picks one
+ * at random the first time per visit and sticks with it for the session.
+ */
+type GameId = 'matching'
+const GAME_IDS: GameId[] = ['matching']
+
+function pickGame(): GameId {
+  return GAME_IDS[Math.floor(Math.random() * GAME_IDS.length)]
 }
 
 const ACTION_LABELS: Record<KittyAction, string> = {
@@ -63,7 +76,7 @@ function NeedBar({
       <div className="bar">
         <div className="fill" style={{ width: `${value}%` }} />
       </div>
-      <span>{value}</span>
+      <span>{Math.round(value)}</span>
     </div>
   )
 }
@@ -105,11 +118,19 @@ export default function App() {
   const [message, setMessage] = useState('')
   const [surprise, setSurprise] = useState<string | null>(null)
   const [view, setView] = useState<'kitty' | 'play'>('kitty')
+  const [game, setGame] = useState<GameId | null>(null)
   const [anim, setAnim] = useState<'idle' | 'happy' | 'purr'>('idle')
   const [soundOn, setSoundOnState] = useState(isSoundOn())
   const [hearts, setHearts] = useState<{ id: number; x: number }[]>([])
   const [snack, setSnack] = useState(false)
   const animTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const kittyRef = useRef<KittyState | null>(null)
+
+  // Keep the ref current for the decay tick (assigned in an effect, not
+  // during render, so the React Compiler can still optimize this file).
+  useEffect(() => {
+    kittyRef.current = kitty ?? null
+  })
 
   useEffect(() => {
     return () => {
@@ -127,14 +148,33 @@ export default function App() {
       const now = Date.now()
       const surprise = returnSurprise(saved.lastVisitAt, now)
       if (surprise) setSurprise(surprise)
-      const visited = {
-        ...saved,
-        lastVisitAt: now,
-        color: saved.color ?? 'orange',
-      }
+      const visited = decayKitty(
+        {
+          ...saved,
+          lastVisitAt: now,
+          color: saved.color ?? 'orange',
+          lastDecayAt: saved.lastDecayAt ?? saved.lastVisitAt,
+        },
+        now,
+      )
       await saveKitty(visited)
       setKitty(visited)
     })()
+  }, [])
+
+  // Gentle real-time decay while the app is open, every 30 seconds. The
+  // load path above catches up on any time that passed while it was
+  // closed, so the bars drain over real time either way.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const current = kittyRef.current
+      if (!current) return
+      const next = decayKitty(current, Date.now())
+      if (next === current) return
+      setKitty(next)
+      void saveKitty(next)
+    }, 30_000)
+    return () => clearInterval(timer)
   }, [])
 
   async function handleName(name: string) {
@@ -204,7 +244,7 @@ export default function App() {
   if (kitty === null) {
     return <Welcome onName={(name) => void handleName(name)} />
   }
-  if (view === 'play') {
+  if (view === 'play' && game === 'matching') {
     return (
       <MatchingGame
         kittyName={kitty.name}
@@ -299,7 +339,15 @@ export default function App() {
                 </button>
               ),
             )}
-            <button type="button" onClick={() => setView('play')}>
+            <button
+              type="button"
+              onClick={() => {
+                // Pick a game at random the first time per visit; Play
+                // again stays on the same game for the session.
+                setGame((current) => current ?? pickGame())
+                setView('play')
+              }}
+            >
               🧩 Play
             </button>
           </>

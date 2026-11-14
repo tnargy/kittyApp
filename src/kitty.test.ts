@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   applyAction,
   applyPuzzleWin,
+  decayKitty,
   initialKitty,
   returnSurprise,
 } from './kitty'
@@ -51,5 +52,43 @@ describe('returnSurprise', () => {
 describe('initialKitty', () => {
   it('starts orange', () => {
     expect(initialKitty('Milo').color).toBe('orange')
+  })
+})
+
+describe('decayKitty', () => {
+  const minute = 60_000
+
+  it('does nothing when no time has passed', () => {
+    const kitty = initialKitty('Milo')
+    expect(decayKitty(kitty, kitty.lastDecayAt)).toBe(kitty)
+  })
+
+  it('drains the bars over hours while awake', () => {
+    const kitty = initialKitty('Milo')
+    const after6h = decayKitty(kitty, kitty.lastDecayAt + 6 * 60 * minute)
+    expect(after6h.hunger).toBeCloseTo(70 - 0.14 * 360, 1)
+    expect(after6h.affection).toBeCloseTo(70 - 0.1 * 360, 1)
+    expect(after6h.litter).toBeCloseTo(80 - 0.07 * 360, 1)
+    expect(after6h.energy).toBeCloseTo(90 - 0.12 * 360, 1)
+    expect(after6h.lastDecayAt).toBe(kitty.lastDecayAt + 6 * 60 * minute)
+  })
+
+  it('clamps bars at 0', () => {
+    const kitty = initialKitty('Milo')
+    const after3Days = decayKitty(
+      kitty,
+      kitty.lastDecayAt + 3 * 24 * 60 * minute,
+    )
+    expect(after3Days.hunger).toBe(0)
+    expect(after3Days.affection).toBe(0)
+    expect(after3Days.litter).toBe(0)
+    expect(after3Days.energy).toBe(0)
+  })
+
+  it('sleeping recovers energy instead of draining it', () => {
+    const kitty = { ...initialKitty('Milo'), sleeping: true, energy: 40 }
+    const after1h = decayKitty(kitty, kitty.lastDecayAt + 60 * minute)
+    expect(after1h.energy).toBeCloseTo(70, 1)
+    expect(after1h.hunger).toBeLessThan(kitty.hunger)
   })
 })
