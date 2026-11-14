@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { loadKitty, logEvent, saveKitty } from './db'
 import {
   applyAction,
@@ -75,6 +75,14 @@ export default function App() {
   const [kitty, setKitty] = useState<KittyState | null | undefined>(undefined)
   const [message, setMessage] = useState('')
   const [surprise, setSurprise] = useState<string | null>(null)
+  const [anim, setAnim] = useState<'idle' | 'happy' | 'purr'>('idle')
+  const animTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (animTimer.current) clearTimeout(animTimer.current)
+    }
+  }, [])
 
   useEffect(() => {
     void (async () => {
@@ -107,6 +115,10 @@ export default function App() {
     await logEvent(action, `${kitty.name} — ${ACTION_MESSAGES[action]}`)
     setKitty(next)
     setMessage(`${kitty.name} ${ACTION_MESSAGES[action]}`)
+    // Brief reaction animation, then back to the idle bob.
+    if (animTimer.current) clearTimeout(animTimer.current)
+    setAnim(action === 'pet' ? 'purr' : 'happy')
+    animTimer.current = setTimeout(() => setAnim('idle'), 1200)
   }
 
   if (kitty === undefined) {
@@ -127,7 +139,10 @@ export default function App() {
           Welcome back! {kitty.name} missed you and {surprise}
         </p>
       )}
-      <div className="kitty-face" aria-hidden>
+      <div
+        className={`kitty-face ${kitty.sleeping ? 'sleeping' : anim}`}
+        aria-hidden
+      >
         {kitty.sleeping ? '😴' : '🐱'}
       </div>
       <h1>{kitty.name}</h1>

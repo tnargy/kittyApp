@@ -27,6 +27,72 @@ p {
 .kitty-face {
   font-size: 96px;
   line-height: 1.1;
+  animation: bob 3s ease-in-out infinite;
+}
+
+/* Gentle idle bob, so the kitty always feels alive. */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Happy wiggle after feeding, grooming, cleaning, or waking. */
+.kitty-face.happy {
+  animation: wiggle 0.6s ease-in-out 2;
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-8deg) scale(1.06);
+  }
+  75% {
+    transform: rotate(8deg) scale(1.06);
+  }
+}
+
+/* Quick little shake while being petted. */
+.kitty-face.purr {
+  animation: purr 0.18s ease-in-out infinite;
+}
+
+@keyframes purr {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+}
+
+/* Slow breathing while asleep. */
+.kitty-face.sleeping {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kitty-face {
+    animation: none;
+  }
 }
 
 .welcome form {
