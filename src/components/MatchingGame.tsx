@@ -123,11 +123,18 @@ export default function MatchingGame({
           const pending =
             !card.matched && puzzle.flipped.includes(card.id)
           return (
-            <button
+            <div
               key={card.id}
-              type="button"
+              role="button"
+              tabIndex={0}
               className={`card${card.faceUp ? ' flipped' : ''}${card.matched ? ' matched' : ''}${pending ? ' pending' : ''}`}
               onClick={() => handleFlip(card.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handleFlip(card.id)
+                }
+              }}
               aria-label={
                 card.matched || card.faceUp
                   ? `card, ${card.symbol}`
@@ -142,7 +149,7 @@ export default function MatchingGame({
                   {card.symbol}
                 </span>
               </span>
-            </button>
+            </div>
           )
         })}
       </div>

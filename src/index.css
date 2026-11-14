@@ -204,6 +204,13 @@ p {
   padding: 0;
   background: transparent;
   perspective: 600px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.card:focus-visible {
+  outline: 3px solid #4a3f55;
+  outline-offset: 2px;
 }
 
 .card-inner {

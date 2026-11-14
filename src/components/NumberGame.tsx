@@ -118,11 +118,18 @@ export default function NumberGame({
       </p>
       <div className="board numbers">
         {game.tiles.map((tile) => (
-          <button
+          <div
             key={tile.id}
-            type="button"
+            role="button"
+            tabIndex={0}
             className={`card${tile.faceUp ? ' flipped' : ''}`}
             onClick={() => handleFlip(tile.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleFlip(tile.id)
+              }
+            }}
             aria-label={
               tile.faceUp ? `tile, ${tile.value}` : 'tile, face down'
             }
@@ -135,7 +142,7 @@ export default function NumberGame({
                 {tile.value}
               </span>
             </span>
-          </button>
+          </div>
         ))}
       </div>
     </main>
