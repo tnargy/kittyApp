@@ -1,0 +1,117 @@
+:root {
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  color: #4a3f55;
+  background: #fff8f0;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 28px;
+  margin: 12px 0;
+}
+
+p {
+  font-size: 17px;
+}
+
+.kitty-face {
+  font-size: 96px;
+  line-height: 1.1;
+}
+
+.welcome form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+input {
+  font: inherit;
+  font-size: 20px;
+  text-align: center;
+  padding: 12px;
+  border: 2px solid #e8c9a8;
+  border-radius: 12px;
+  background: #fff;
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  font-size: 18px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #ff9f43;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.message {
+  min-height: 1.5em;
+  font-style: italic;
+}
+
+.surprise {
+  background: #fff3d6;
+  border: 2px dashed #ffcf5c;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.needs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.need {
+  display: grid;
+  grid-template-columns: 90px 1fr 32px;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar {
+  height: 14px;
+  background: #f0e4d3;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: #ff9f43;
+  border-radius: 7px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.next {
+  color: #9a8ba8;
+  font-size: 15px;
+  margin-top: 24px;
+}
