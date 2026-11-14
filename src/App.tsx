@@ -153,8 +153,9 @@ export default function App() {
       )
       await saveKitty(visited)
       setKitty(visited)
-      // Test deep link (?game=matching / ?game=numbers): open that game
-      // directly instead of picking at random. Normal play ignores it.
+      // Test deep link (?game=matching / ?game=numbers / ?game=lightsout):
+      // open that game directly instead of picking at random. Normal
+      // play ignores it.
       const linked = gameFromParams(window.location.search)
       if (linked) {
         setGame(linked)
@@ -232,7 +233,7 @@ export default function App() {
     if (next) playSound('pop')
   }
 
-  /** Shared win reward for both games: +10 affection, once per win. */
+  /** Shared win reward for all games: +10 affection, once per win. */
   async function handleGameWin(eventType: string, note: string) {
     if (!kitty) return
     const next = applyPuzzleWin(kitty)

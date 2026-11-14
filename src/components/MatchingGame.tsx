@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import KittyFace from './KittyFace'
+import GameWin from './GameWin'
 import {
   createPuzzle,
   flipBackMismatched,
@@ -10,8 +10,6 @@ import type { KittyColor } from '../kitty'
 import { playSound } from '../sound'
 
 const FLIP_BACK_MS = 1500
-
-const CONFETTI_COLORS = ['#ff9f43', '#ff6b9d', '#4ecdc4', '#ffd93d']
 
 interface MatchingGameProps {
   kittyName: string
@@ -81,33 +79,12 @@ export default function MatchingGame({
 
   if (puzzle.won) {
     return (
-      <main className="puzzle-view">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <span
-            key={i}
-            className="confetti"
-            style={{
-              left: `${(i * 8 + 4) % 100}%`,
-              animationDelay: `${(i % 6) * 0.2}s`,
-              background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-            }}
-            aria-hidden
-          />
-        ))}
-        <div className="kitty-face happy celebrating" aria-hidden>
-          <KittyFace color={kittyColor} mood="happy" />
-        </div>
-        <h1>You did it!</h1>
-        <p>{kittyName} is so proud!</p>
-        <div className="actions">
-          <button type="button" onClick={handlePlayAgain}>
-            🔁 Play again
-          </button>
-          <button type="button" onClick={onBack}>
-            🐱 Back to kitty
-          </button>
-        </div>
-      </main>
+      <GameWin
+        kittyName={kittyName}
+        kittyColor={kittyColor}
+        onPlayAgain={handlePlayAgain}
+        onBack={onBack}
+      />
     )
   }
 

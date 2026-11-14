@@ -5,6 +5,7 @@ describe('gameFromParams', () => {
   it('reads a valid game from the query string', () => {
     expect(gameFromParams('?game=matching')).toBe('matching')
     expect(gameFromParams('?game=numbers')).toBe('numbers')
+    expect(gameFromParams('?game=lightsout')).toBe('lightsout')
   })
 
   it('returns null for anything unrecognized', () => {

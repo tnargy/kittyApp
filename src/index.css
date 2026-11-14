@@ -167,6 +167,10 @@ p {
     transition: none;
   }
 
+  .light {
+    transition: none;
+  }
+
   .card.matched .card-inner,
   .kitty-face.celebrating {
     animation: none;
@@ -196,6 +200,32 @@ p {
 
 .board.numbers {
   grid-template-columns: repeat(3, 1fr);
+}
+
+.board.lights {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.light {
+  aspect-ratio: 1;
+  min-height: 64px;
+  padding: 0;
+  background: #3a3340;
+  border-radius: 12px;
+  font-size: 32px;
+  transition:
+    background 0.3s,
+    box-shadow 0.3s;
+}
+
+.light:focus-visible {
+  outline: 3px solid #4a3f55;
+  outline-offset: 2px;
+}
+
+.light.on {
+  background: #ffd93d;
+  box-shadow: 0 0 16px 4px rgba(255, 217, 61, 0.7);
 }
 
 .card {

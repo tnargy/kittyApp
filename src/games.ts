@@ -7,10 +7,12 @@
 // deep link instead of tapping Play until it comes up:
 //   /kittyApp/?game=matching
 //   /kittyApp/?game=numbers
+//   /kittyApp/?game=lightsout
 // The link opens that game on load (once a kitty exists). It is only for
 // testing — normal play is always random.
 
 import type { ComponentType } from 'react'
+import LightsOutGame from './components/LightsOutGame'
 import MatchingGame from './components/MatchingGame'
 import NumberGame from './components/NumberGame'
 import type { KittyColor } from './kitty'
@@ -22,13 +24,14 @@ export interface GameProps {
   onBack: () => void
 }
 
-export type GameId = 'matching' | 'numbers'
+export type GameId = 'matching' | 'numbers' | 'lightsout'
 
-export const GAME_IDS: GameId[] = ['matching', 'numbers']
+export const GAME_IDS: GameId[] = ['matching', 'numbers', 'lightsout']
 
 export const GAMES: Record<GameId, ComponentType<GameProps>> = {
   matching: MatchingGame,
   numbers: NumberGame,
+  lightsout: LightsOutGame,
 }
 
 export const GAME_META: Record<
@@ -43,14 +46,21 @@ export const GAME_META: Record<
     eventType: 'number-game-solved',
     solvedNote: (name) => `${name} solved the number game`,
   },
+  lightsout: {
+    eventType: 'lights-out-solved',
+    solvedNote: (name) => `${name} turned out all the lights`,
+  },
 }
 
 export function pickGame(): GameId {
   return GAME_IDS[Math.floor(Math.random() * GAME_IDS.length)]
 }
 
-/** Read a `?game=` deep link. Returns null for anything unrecognized. */
+/** Read a `?game=` deep link. Returns null for anything unrecognized.
+ * Derived from the registry, so a new game comes free here. */
 export function gameFromParams(search: string): GameId | null {
   const game = new URLSearchParams(search).get('game')
-  return game === 'matching' || game === 'numbers' ? game : null
+  return (GAME_IDS as string[]).includes(game ?? '')
+    ? (game as GameId)
+    : null
 }
