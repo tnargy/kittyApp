@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import MatchingGame from './components/MatchingGame'
 import { loadKitty, logEvent, saveKitty } from './db'
 import {
   applyAction,
+  applyPuzzleWin,
   initialKitty,
   returnSurprise,
   type KittyAction,
@@ -75,6 +77,7 @@ export default function App() {
   const [kitty, setKitty] = useState<KittyState | null | undefined>(undefined)
   const [message, setMessage] = useState('')
   const [surprise, setSurprise] = useState<string | null>(null)
+  const [view, setView] = useState<'kitty' | 'play'>('kitty')
   const [anim, setAnim] = useState<'idle' | 'happy' | 'purr'>('idle')
   const animTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -121,6 +124,14 @@ export default function App() {
     animTimer.current = setTimeout(() => setAnim('idle'), 1200)
   }
 
+  async function handlePuzzleWin() {
+    if (!kitty) return
+    const next = applyPuzzleWin(kitty)
+    await saveKitty(next)
+    await logEvent('puzzle-solved', `${kitty.name} solved the matching puzzle`)
+    setKitty(next)
+  }
+
   if (kitty === undefined) {
     return (
       <main className="loading">
@@ -130,6 +141,15 @@ export default function App() {
   }
   if (kitty === null) {
     return <Welcome onName={(name) => void handleName(name)} />
+  }
+  if (view === 'play') {
+    return (
+      <MatchingGame
+        kittyName={kitty.name}
+        onWin={() => void handlePuzzleWin()}
+        onBack={() => setView('kitty')}
+      />
+    )
   }
 
   return (
@@ -161,21 +181,24 @@ export default function App() {
             {ACTION_LABELS.wake}
           </button>
         ) : (
-          (['feed', 'pet', 'groom', 'cleanLitter', 'bedtime'] as KittyAction[]).map(
-            (action) => (
-              <button
-                key={action}
-                type="button"
-                onClick={() => void handleAction(action)}
-              >
-                {ACTION_LABELS[action]}
-              </button>
-            ),
-          )
+          <>
+            {(['feed', 'pet', 'groom', 'cleanLitter', 'bedtime'] as KittyAction[]).map(
+              (action) => (
+                <button
+                  key={action}
+                  type="button"
+                  onClick={() => void handleAction(action)}
+                >
+                  {ACTION_LABELS[action]}
+                </button>
+              ),
+            )}
+            <button type="button" onClick={() => setView('play')}>
+              🧩 Play
+            </button>
+          </>
         )}
       </div>
-
-      <p className="next">Play time with puzzles is coming next.</p>
     </main>
   )
 }

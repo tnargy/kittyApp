@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { applyAction, initialKitty, returnSurprise } from './kitty'
+import {
+  applyAction,
+  applyPuzzleWin,
+  initialKitty,
+  returnSurprise,
+} from './kitty'
 
 describe('applyAction', () => {
   it('feeding fills hunger but never past 100', () => {
@@ -24,6 +29,11 @@ describe('applyAction', () => {
     const awake = applyAction({ ...asleep, energy: 40 }, 'wake')
     expect(awake.sleeping).toBe(false)
     expect(awake.energy).toBe(100)
+  })
+
+  it('a puzzle win adds affection, capped at 100', () => {
+    expect(applyPuzzleWin({ ...initialKitty('Milo'), affection: 80 }).affection).toBe(90)
+    expect(applyPuzzleWin({ ...initialKitty('Milo'), affection: 95 }).affection).toBe(100)
   })
 })
 

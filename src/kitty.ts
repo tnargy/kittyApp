@@ -61,6 +61,14 @@ export function applyAction(kitty: KittyState, action: KittyAction): KittyState 
   }
 }
 
+/** Win bonus, kept out of KittyAction on purpose: KittyAction is the set
+ * of tap-able care buttons, and a puzzle win is a game outcome, not a
+ * button. (Adding it to the union would break the exhaustive
+ * Record<KittyAction, string> label/message maps in App.tsx.) */
+export function applyPuzzleWin(kitty: KittyState): KittyState {
+  return { ...kitty, affection: clamp(kitty.affection + 10) }
+}
+
 /** Surprises left behind when the player returns after a gap. Never a penalty. */
 const RETURN_SURPRISES = [
   'left you a little drawing!',
