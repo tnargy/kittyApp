@@ -7,10 +7,13 @@ bedtime.
 
 ## The rules
 
-- Needs only change while the app is open. Nothing decays or gets worse
-  while the app is closed.
-- Missing a visit can never make things worse. Coming back after a gap, the
-  kitty is just extra happy to see you — sometimes with a little surprise.
+- Needs deplete over real time, whether the app is open or not (changed
+  2026-11-14): hunger empties in ~12h, affection ~17h, litter ~24h,
+  energy ~14h while awake; sleeping recovers energy. A bar at 0 is just
+  empty, never a punishment.
+- Missing a visit can never make things worse beyond the bars draining.
+  Coming back after a gap, the kitty is just extra happy to see you —
+  sometimes with a little surprise.
 - All data lives in the browser (Dexie.js / IndexedDB). No accounts, no
   server, no sync.
 
@@ -21,8 +24,20 @@ no custom domain). Same pattern as the coffee roasting tracker.
 
 ## v1 scope
 
-Name once, feed, pet and groom, litter, one matching puzzle from Play,
-bedtime. Growth, extra puzzles, and collectibles are deferred.
+Name once, feed, pet and groom, litter, Play (matching puzzle and number
+game, one picked at random per visit), bedtime. The kitty has a drawn
+face with moods, four colors, and little sounds. Growth and collectibles
+are deferred.
+
+## Test deep links
+
+Play is random in normal use, but each game opens directly for testing:
+
+- Matching puzzle: https://tnargy.github.io/kittyApp/?game=matching
+- Number game: https://tnargy.github.io/kittyApp/?game=numbers
+
+The link opens that game on load (once a kitty exists) and Play keeps
+opening the same game for the session.
 
 ## Develop
 

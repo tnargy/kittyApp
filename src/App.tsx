@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import KittyFace, { type KittyMood } from './components/KittyFace'
-import MatchingGame from './components/MatchingGame'
-import NumberGame from './components/NumberGame'
 import { loadKitty, logEvent, saveKitty } from './db'
+import {
+  GAME_META,
+  GAMES,
+  gameFromParams,
+  pickGame,
+  type GameId,
+} from './games'
 import {
   applyAction,
   applyPuzzleWin,
@@ -30,18 +35,6 @@ function moodFor(kitty: KittyState, anim: string): KittyMood {
   if (anim === 'happy' || anim === 'purr') return 'happy'
   if (kitty.hunger < 40) return 'hungry'
   return 'idle'
-}
-
-/**
- * Playable games. Add a new game by adding its id here and a branch in
- * the play view. Play picks one at random the first time per visit and
- * sticks with it for the session.
- */
-type GameId = 'matching' | 'numbers'
-const GAME_IDS: GameId[] = ['matching', 'numbers']
-
-function pickGame(): GameId {
-  return GAME_IDS[Math.floor(Math.random() * GAME_IDS.length)]
 }
 
 const ACTION_LABELS: Record<KittyAction, string> = {
@@ -160,6 +153,13 @@ export default function App() {
       )
       await saveKitty(visited)
       setKitty(visited)
+      // Test deep link (?game=matching / ?game=numbers): open that game
+      // directly instead of picking at random. Normal play ignores it.
+      const linked = gameFromParams(window.location.search)
+      if (linked) {
+        setGame(linked)
+        setView('play')
+      }
     })()
   }, [])
 
@@ -184,6 +184,12 @@ export default function App() {
     await logEvent('named', `Named the kitty ${name}`)
     setKitty(created)
     setMessage(`${name} is so happy to meet you!`)
+    // A fresh kitty named from a test deep link goes straight to the game.
+    const linked = gameFromParams(window.location.search)
+    if (linked) {
+      setGame(linked)
+      setView('play')
+    }
   }
 
   async function handleAction(action: KittyAction) {
@@ -246,31 +252,15 @@ export default function App() {
   if (kitty === null) {
     return <Welcome onName={(name) => void handleName(name)} />
   }
-  if (view === 'play' && game === 'matching') {
+  if (view === 'play' && game) {
+    const Game = GAMES[game]
+    const meta = GAME_META[game]
     return (
-      <MatchingGame
+      <Game
         kittyName={kitty.name}
         kittyColor={kitty.color}
         onWin={() =>
-          void handleGameWin(
-            'puzzle-solved',
-            `${kitty.name} solved the matching puzzle`,
-          )
-        }
-        onBack={() => setView('kitty')}
-      />
-    )
-  }
-  if (view === 'play' && game === 'numbers') {
-    return (
-      <NumberGame
-        kittyName={kitty.name}
-        kittyColor={kitty.color}
-        onWin={() =>
-          void handleGameWin(
-            'number-game-solved',
-            `${kitty.name} solved the number game`,
-          )
+          void handleGameWin(meta.eventType, meta.solvedNote(kitty.name))
         }
         onBack={() => setView('kitty')}
       />
