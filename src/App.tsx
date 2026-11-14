@@ -355,9 +355,10 @@ export default function App() {
             <button
               type="button"
               onClick={() => {
-                // Pick a game at random the first time per visit; Play
-                // again stays on the same game for the session.
-                setGame((current) => current ?? pickGame())
+                // Pick a fresh game at random every time Play is tapped.
+                // Play again after a win replays the same game instead:
+                // each game's own handlePlayAgain deals a fresh board.
+                setGame(pickGame())
                 setView('play')
               }}
             >

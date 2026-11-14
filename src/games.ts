@@ -2,8 +2,8 @@
 // screen component and its win event. Adding a game means adding one
 // entry — nothing in App.tsx needs a new branch.
 //
-// Play picks a game at random the first time per visit and sticks with it
-// for the session. For testing, a game can be opened directly with a
+// Play picks a fresh game at random every time it is tapped. Play again
+// after a win replays the same game (a fresh board of it). For testing, a
 // deep link instead of tapping Play until it comes up:
 //   /kittyApp/?game=matching
 //   /kittyApp/?game=numbers

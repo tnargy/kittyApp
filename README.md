@@ -25,7 +25,8 @@ no custom domain). Same pattern as the coffee roasting tracker.
 ## v1 scope
 
 Name once, feed, pet and groom, litter, Play (matching puzzle, number
-game, and lights out, one picked at random per visit), bedtime. The
+game, and lights out, a fresh one picked at random each time Play is
+tapped), bedtime. The
 kitty has a drawn face with moods, four colors, and little sounds.
 Growth and collectibles are deferred.
 
@@ -37,8 +38,8 @@ Play is random in normal use, but each game opens directly for testing:
 - Number game: https://tnargy.github.io/kittyApp/?game=numbers
 - Lights out: https://tnargy.github.io/kittyApp/?game=lightsout
 
-The link opens that game on load (once a kitty exists) and Play keeps
-opening the same game for the session.
+The link opens that game on load (once a kitty exists). Play again
+after a win replays the same game.
 
 ## Develop
 
