@@ -6,6 +6,7 @@
 export type SoundName =
   | 'pop'
   | 'ding'
+  | 'oops'
   | 'mrrp'
   | 'munch'
   | 'chime'
@@ -77,6 +78,9 @@ export function playSound(name: SoundName): void {
         break
       case 'ding':
         tone(ac, 880, 0.15, 'sine')
+        break
+      case 'oops':
+        tone(ac, 400, 0.2, 'sine', 0, 200)
         break
       case 'mrrp':
         tone(ac, 300, 0.18, 'sine', 0, 520)

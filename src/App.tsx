@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import KittyFace, { type KittyMood } from './components/KittyFace'
 import MatchingGame from './components/MatchingGame'
+import NumberGame from './components/NumberGame'
 import { loadKitty, logEvent, saveKitty } from './db'
 import {
   applyAction,
@@ -32,12 +33,12 @@ function moodFor(kitty: KittyState, anim: string): KittyMood {
 }
 
 /**
- * Playable games. The second game slots in here when Grant picks it —
- * add its id to GAME_IDS and a branch in the play view. Play picks one
- * at random the first time per visit and sticks with it for the session.
+ * Playable games. Add a new game by adding its id here and a branch in
+ * the play view. Play picks one at random the first time per visit and
+ * sticks with it for the session.
  */
-type GameId = 'matching'
-const GAME_IDS: GameId[] = ['matching']
+type GameId = 'matching' | 'numbers'
+const GAME_IDS: GameId[] = ['matching', 'numbers']
 
 function pickGame(): GameId {
   return GAME_IDS[Math.floor(Math.random() * GAME_IDS.length)]
@@ -225,11 +226,12 @@ export default function App() {
     if (next) playSound('pop')
   }
 
-  async function handlePuzzleWin() {
+  /** Shared win reward for both games: +10 affection, once per win. */
+  async function handleGameWin(eventType: string, note: string) {
     if (!kitty) return
     const next = applyPuzzleWin(kitty)
     await saveKitty(next)
-    await logEvent('puzzle-solved', `${kitty.name} solved the matching puzzle`)
+    await logEvent(eventType, note)
     setKitty(next)
     playSound('chime')
   }
@@ -249,7 +251,27 @@ export default function App() {
       <MatchingGame
         kittyName={kitty.name}
         kittyColor={kitty.color}
-        onWin={() => void handlePuzzleWin()}
+        onWin={() =>
+          void handleGameWin(
+            'puzzle-solved',
+            `${kitty.name} solved the matching puzzle`,
+          )
+        }
+        onBack={() => setView('kitty')}
+      />
+    )
+  }
+  if (view === 'play' && game === 'numbers') {
+    return (
+      <NumberGame
+        kittyName={kitty.name}
+        kittyColor={kitty.color}
+        onWin={() =>
+          void handleGameWin(
+            'number-game-solved',
+            `${kitty.name} solved the number game`,
+          )
+        }
         onBack={() => setView('kitty')}
       />
     )
