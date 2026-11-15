@@ -71,16 +71,31 @@ describe('createMaze', () => {
     }
   })
 
-  it('the fish is a farthest cell, at least 14 steps away', () => {
+  it('the fish hides in a dead end, at least 14 steps away', () => {
     for (let i = 0; i < 20; i++) {
       const state = createMaze()
       const distances = bfsDistances(state.cells, START_INDEX)
       const fishDistance = distances.get(state.fish)!
       expect(fishDistance).toBeGreaterThanOrEqual(MIN_JOURNEY)
-      for (const distance of distances.values()) {
-        expect(distance).toBeLessThanOrEqual(fishDistance)
-      }
+      // A dead end is a leaf: exactly one open passage.
+      const openWalls = state.cells[state.fish].walls.filter(
+        (wall) => !wall,
+      ).length
+      expect(openWalls).toBe(1)
+      expect(state.fish).not.toBe(START_INDEX)
     }
+  })
+
+  it('the hiding spot varies across deals', () => {
+    const spots = new Set<number>()
+    const distances = new Set<number>()
+    for (let i = 0; i < 20; i++) {
+      const state = createMaze()
+      spots.add(state.fish)
+      distances.add(bfsDistances(state.cells, START_INDEX).get(state.fish)!)
+    }
+    expect(spots.size).toBeGreaterThanOrEqual(8)
+    expect(distances.size).toBeGreaterThanOrEqual(3)
   })
 
   it('mazes vary across deals', () => {

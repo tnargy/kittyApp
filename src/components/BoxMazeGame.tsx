@@ -24,7 +24,8 @@ function cellLabel(state: MazeState, index: number): string {
   const cell = state.cells[index]
   let label = `cell ${index + 1}`
   if (state.kitty === index) label += ', kitty here'
-  if (state.fish === index) label += ', fish'
+  // The fish is hidden until it is found, so it never appears in a
+  // label — naming it would give away the hiding spot.
   label += wallLabel(cell)
   return label
 }
@@ -70,6 +71,7 @@ export default function BoxMazeGame({
       <GameWin
         kittyName={kittyName}
         kittyColor={kittyColor}
+        prize="🐟"
         onPlayAgain={handlePlayAgain}
         onBack={onBack}
       />
@@ -82,15 +84,15 @@ export default function BoxMazeGame({
         🐱 Back to kitty
       </button>
       <h1>Find the fish!</h1>
-      <p>Tap a next-door square to move the kitty! 🐱→🐟</p>
+      <p>The fish is hiding in the maze — tap a next-door square to move the kitty! 🐱</p>
       <div className="board seven maze">
         {game.cells.map((cell, index) => (
           <button
             key={cell.id}
             type="button"
             className={`maze-cell${game.kitty === index ? ' kitty' : ''}${
-              game.fish === index ? ' fish' : ''
-            }${game.visited.includes(index) ? ' visited' : ''}`}
+              game.visited.includes(index) ? ' visited' : ''
+            }`}
             onClick={() => handleTap(index)}
             aria-label={cellLabel(game, index)}
             style={{
@@ -98,15 +100,13 @@ export default function BoxMazeGame({
               borderLeft: cell.walls[3] ? '3px solid #4a3f55' : 'none',
             }}
           >
-            {game.kitty === index
-              ? '🐱'
-              : game.fish === index
-                ? '🐟'
-                : game.visited.includes(index) ? (
-                    <span className="paw" aria-hidden>
-                      🐾
-                    </span>
-                  ) : null}
+            {game.kitty === index ? (
+              '🐱'
+            ) : game.visited.includes(index) ? (
+              <span className="paw" aria-hidden>
+                🐾
+              </span>
+            ) : null}
           </button>
         ))}
       </div>

@@ -1,8 +1,11 @@
 // Pure cardboard-box maze logic for the Play game.
 // A 7x7 maze dealt fresh every game by randomized depth-first search:
-// every cell is reachable from the start, and the fish sits on a
-// farthest cell, so the trip is a real journey. Tapping a cell next
-// door to the kitty moves her there when no wall is in the way;
+// every cell is reachable from the start, and the fish hides in a
+// random dead end at least MIN_JOURNEY steps away, so the trip is a
+// real journey and the hiding spot is different every game. The fish
+// is not shown on the board — the player finds it by exploring, and
+// it appears on the win screen as the prize when the kitty reaches
+// it. Tapping a cell next door to the kitty moves her there when no wall is in the way;
 // walls are always symmetric (carving a passage clears the wall on
 // both cells' shared edge), so she can always walk back out of a
 // dead end. Visited cells are remembered, so the maze builds its own
@@ -94,7 +97,7 @@ function dealOnce(): MazeState {
     seen.add(next)
     stack.push(next)
   }
-  const fish = farthestCell(cells, START_INDEX)
+  const fish = pickFish(cells) ?? farthestCell(cells, START_INDEX)
   return { cells, kitty: START_INDEX, fish, visited: [START_INDEX], won: false }
 }
 
@@ -133,9 +136,29 @@ function farthestCell(cells: MazeCell[], start: number): number {
 }
 
 /**
+ * The fish hides in a random dead end: a leaf cell (exactly one open
+ * passage), not the start, at least MIN_JOURNEY steps away. A random
+ * leaf keeps the hiding spot different every game — the fish is no
+ * longer always one of the farthest cells. Returns null when no leaf
+ * qualifies (essentially never on a 7x7 board).
+ */
+function pickFish(cells: MazeCell[]): number | null {
+  const distances = bfsDistances(cells, START_INDEX)
+  const leaves: number[] = []
+  for (let index = 0; index < CELL_COUNT; index++) {
+    if (index === START_INDEX) continue
+    const openWalls = cells[index].walls.filter((wall) => !wall).length
+    if (openWalls !== 1) continue
+    if ((distances.get(index) ?? 0) >= MIN_JOURNEY) leaves.push(index)
+  }
+  if (leaves.length === 0) return null
+  return leaves[Math.floor(Math.random() * leaves.length)]
+}
+
+/**
  * Deal a fresh maze: randomized DFS from the start cell until every
- * cell has been visited, then the fish on a farthest cell by BFS
- * distance over canMove. Re-deals (up to 20 attempts) until the
+ * cell has been visited, then the fish in a random dead end at least
+ * MIN_JOURNEY steps away. Re-deals (up to 20 attempts) until the
  * fish is at least MIN_JOURNEY steps away, then accepts the best
  * deal. Always returns won: false, with visited: [start].
  */

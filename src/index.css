@@ -292,12 +292,8 @@ p {
   background: #fff3d6;
 }
 
-.maze-cell.fish {
-  background: #fff;
-}
-
 /* Paw-print breadcrumbs: faint, so they stay clearly distinct from
- * the kitty and the fish. */
+ * the kitty. */
 .maze-cell.visited .paw {
   opacity: 0.45;
   font-size: 20px;
