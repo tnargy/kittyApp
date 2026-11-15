@@ -83,7 +83,7 @@ export default function BoxMazeGame({
       </button>
       <h1>Find the fish!</h1>
       <p>Tap a next-door square to move the kitty! 🐱→🐟</p>
-      <div className="board five maze">
+      <div className="board seven maze">
         {game.cells.map((cell, index) => (
           <button
             key={cell.id}

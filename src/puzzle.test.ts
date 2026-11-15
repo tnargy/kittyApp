@@ -25,11 +25,11 @@ function findMismatch(state: ReturnType<typeof createPuzzle>) {
 }
 
 describe('createDeck', () => {
-  it('has 8 cards: 4 pairs, each symbol exactly twice, unique ids', () => {
+  it('has 12 cards: 6 pairs, each symbol exactly twice, unique ids', () => {
     const deck = createDeck()
     expect(deck).toHaveLength(PAIR_COUNT * 2)
     expect(new Set(deck.map((c) => c.id)).size).toBe(deck.length)
-    for (const symbol of ['🐟', '🍤', '🦀', '🐚']) {
+    for (const symbol of ['🐟', '🍤', '🦀', '🐚', '🐙', '🐢']) {
       expect(deck.filter((c) => c.symbol === symbol)).toHaveLength(2)
     }
     expect(deck.every((c) => !c.matched && !c.faceUp)).toBe(true)

@@ -210,8 +210,16 @@ p {
   grid-template-columns: repeat(3, 1fr);
 }
 
+.board.four {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .board.five {
   grid-template-columns: repeat(5, 1fr);
+}
+
+.board.seven {
+  grid-template-columns: repeat(7, 1fr);
 }
 
 /* The maze board: no gap, so adjacent cells' walls meet into single

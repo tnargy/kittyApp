@@ -71,7 +71,7 @@ describe('createMaze', () => {
     }
   })
 
-  it('the fish is a farthest cell, at least 8 steps away', () => {
+  it('the fish is a farthest cell, at least 14 steps away', () => {
     for (let i = 0; i < 20; i++) {
       const state = createMaze()
       const distances = bfsDistances(state.cells, START_INDEX)

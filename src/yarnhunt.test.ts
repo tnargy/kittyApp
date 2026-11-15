@@ -33,11 +33,11 @@ describe('createYarnHunt', () => {
 
   it('hidden spot varies and stays in range', () => {
     // A smoke test on the distribution: every spot appears at least
-    // 3 times in 200 deals (expected ~22 each).
+    // 3 times in 300 deals (expected ~19 each).
     const seen = new Map<string, number>()
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 300; i++) {
       const { hiddenId } = createYarnHunt()
-      expect(hiddenId).toMatch(/^basket-[0-8]$/)
+      expect(hiddenId).toMatch(/^basket-([0-9]|1[0-5])$/)
       seen.set(hiddenId, (seen.get(hiddenId) ?? 0) + 1)
     }
     for (let index = 0; index < BASKET_COUNT; index++) {
@@ -78,44 +78,50 @@ describe('peek', () => {
 })
 
 describe('hintFor / warmthEmoji', () => {
-  // Hidden at 4 (center): distance 1 is the cross, 2 is the corners.
+  // Hidden at 5 (row 1, col 1): distance 1 is the cross, 2–3 the
+  // middle ring, 4+ the far corner.
   it('distance 1 is "So close!" with a fire marker', () => {
-    const state = peek(stateWithHidden(4), 'basket-1')
+    const state = peek(stateWithHidden(5), 'basket-1')
     expect(hintFor(state, 'basket-1')).toBe('So close! 🔥')
     expect(warmthEmoji(state, 'basket-1')).toBe('🔥')
   })
 
   it('distance 2 is "Getting warm!" with a thermometer marker', () => {
-    const state = peek(stateWithHidden(4), 'basket-0')
+    const state = peek(stateWithHidden(5), 'basket-0')
     expect(hintFor(state, 'basket-0')).toBe('Getting warm! 🌡️')
     expect(warmthEmoji(state, 'basket-0')).toBe('🌡️')
   })
 
-  it('distance 3+ is "Brrr, cold!" with a snowflake marker', () => {
-    // Hidden at 8 (bottom-right): basket 0 is distance 4 away.
-    const state = peek(stateWithHidden(8), 'basket-0')
-    expect(hintFor(state, 'basket-0')).toBe('Brrr, cold! ❄️')
-    expect(warmthEmoji(state, 'basket-0')).toBe('❄️')
+  it('distance 3 is still "Getting warm!"', () => {
+    const state = peek(stateWithHidden(5), 'basket-3')
+    expect(hintFor(state, 'basket-3')).toBe('Getting warm! 🌡️')
+    expect(warmthEmoji(state, 'basket-3')).toBe('🌡️')
+  })
+
+  it('distance 4+ is "Brrr, cold!" with a snowflake marker', () => {
+    const state = peek(stateWithHidden(5), 'basket-15')
+    expect(hintFor(state, 'basket-15')).toBe('Brrr, cold! ❄️')
+    expect(warmthEmoji(state, 'basket-15')).toBe('❄️')
   })
 })
 
 describe('bestHint', () => {
   it('is the opening line before any peek', () => {
-    expect(bestHint(stateWithHidden(4))).toBe('Where is the yarn ball? 👀')
+    expect(bestHint(stateWithHidden(5))).toBe('Where is the yarn ball? 👀')
   })
 
   it('is the closest peeked basket\'s hint', () => {
-    // Hidden at 8: basket 0 (distance 4, cold), then basket 7
+    // Hidden at 15: basket 0 (distance 6, cold), then basket 14
     // (distance 1, hot) — the line follows the closest peek.
-    let state = peek(stateWithHidden(8), 'basket-0')
+    let state = peek(stateWithHidden(15), 'basket-0')
     expect(bestHint(state)).toBe('Brrr, cold! ❄️')
-    state = peek(state, 'basket-7')
+    state = peek(state, 'basket-14')
     expect(bestHint(state)).toBe('So close! 🔥')
   })
 
   it('never gets colder', () => {
-    // Hidden at 8: peek the hot basket first, then a cold one.
-    let state = peek(stateWithHidden(8), 'basket-7')
+    // Hidden at 15: peek the hot basket first, then a cold one.
+    let state = peek(stateWithHidden(15), 'basket-14')
     expect(bestHint(state)).toBe('So close! 🔥')
     state = peek(state, 'basket-0')
     expect(bestHint(state)).toBe('So close! 🔥')
@@ -124,7 +130,7 @@ describe('bestHint', () => {
 
 describe('basketsChecked', () => {
   it('counts peeked baskets', () => {
-    let state = stateWithHidden(4)
+    let state = stateWithHidden(5)
     expect(basketsChecked(state)).toBe(0)
     state = peek(state, 'basket-0')
     state = peek(state, 'basket-2')

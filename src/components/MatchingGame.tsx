@@ -4,6 +4,7 @@ import {
   createPuzzle,
   flipBackMismatched,
   flipCard,
+  PAIR_COUNT,
   type PuzzleState,
 } from '../puzzle'
 import type { KittyColor } from '../kitty'
@@ -94,7 +95,7 @@ export default function MatchingGame({
         🐱 Back to kitty
       </button>
       <h1>Find the pairs!</h1>
-      <p>🐟 {puzzle.pairsFound} of 4 pairs</p>
+      <p>🐟 {puzzle.pairsFound} of {PAIR_COUNT} pairs</p>
       <div className="board">
         {puzzle.cards.map((card) => {
           const pending =

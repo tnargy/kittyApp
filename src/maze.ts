@@ -1,5 +1,5 @@
 // Pure cardboard-box maze logic for the Play game.
-// A 5x5 maze dealt fresh every game by randomized depth-first search:
+// A 7x7 maze dealt fresh every game by randomized depth-first search:
 // every cell is reachable from the start, and the fish sits on a
 // farthest cell, so the trip is a real journey. Tapping a cell next
 // door to the kitty moves her there when no wall is in the way;
@@ -28,11 +28,11 @@ export interface MazeState {
   won: boolean
 }
 
-export const GRID_SIZE = 5
+export const GRID_SIZE = 7
 export const CELL_COUNT = GRID_SIZE * GRID_SIZE
-export const START_INDEX = 20 // bottom-left (row 4, col 0)
+export const START_INDEX = 42 // bottom-left (row 6, col 0)
 /** The fish's BFS distance from the start is at least this far. */
-export const MIN_JOURNEY = 8
+export const MIN_JOURNEY = 14
 const MAX_DEALS = 20
 
 function shuffle<T>(items: T[]): T[] {

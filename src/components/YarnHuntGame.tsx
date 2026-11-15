@@ -61,7 +61,7 @@ export default function YarnHuntGame({
       </button>
       <h1>Find the yarn ball!</h1>
       <p>{bestHint(game)}</p>
-      <div className="board three">
+      <div className="board four">
         {game.baskets.map((basket, index) => (
           <button
             key={basket.id}
@@ -78,7 +78,7 @@ export default function YarnHuntGame({
           </button>
         ))}
       </div>
-      <p>🧺 {basketsChecked(game)} of 9 baskets checked</p>
+      <p>🧺 {basketsChecked(game)} of 16 baskets checked</p>
     </main>
   )
 }

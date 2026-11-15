@@ -17,7 +17,7 @@ export interface PuzzleState {
   won: boolean
 }
 
-export const PAIR_SYMBOLS = ['🐟', '🍤', '🦀', '🐚'] as const
+export const PAIR_SYMBOLS = ['🐟', '🍤', '🦀', '🐚', '🐙', '🐢'] as const
 
 export const PAIR_COUNT = PAIR_SYMBOLS.length
 
