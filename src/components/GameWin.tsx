@@ -6,6 +6,10 @@ const CONFETTI_COLORS = ['#ff9f43', '#ff6b9d', '#4ecdc4', '#ffd93d']
 interface GameWinProps {
   kittyName: string
   kittyColor: KittyColor
+  /** Optional prize emoji shown under the kitty face — the thing the
+   * player found or won (e.g. the yarn ball 🧶). Games that have no
+   * prize omit it. */
+  prize?: string
   onPlayAgain: () => void
   onBack: () => void
 }
@@ -15,6 +19,7 @@ interface GameWinProps {
 export default function GameWin({
   kittyName,
   kittyColor,
+  prize,
   onPlayAgain,
   onBack,
 }: GameWinProps) {
@@ -35,6 +40,11 @@ export default function GameWin({
       <div className="kitty-face happy celebrating" aria-hidden>
         <KittyFace color={kittyColor} mood="happy" />
       </div>
+      {prize ? (
+        <div className="prize" aria-hidden>
+          {prize}
+        </div>
+      ) : null}
       <h1>You did it!</h1>
       <p>{kittyName} is so proud!</p>
       <div className="actions">

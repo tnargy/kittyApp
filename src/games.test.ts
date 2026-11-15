@@ -6,6 +6,8 @@ describe('gameFromParams', () => {
     expect(gameFromParams('?game=matching')).toBe('matching')
     expect(gameFromParams('?game=numbers')).toBe('numbers')
     expect(gameFromParams('?game=lightsout')).toBe('lightsout')
+    expect(gameFromParams('?game=yarnhunt')).toBe('yarnhunt')
+    expect(gameFromParams('?game=boxmaze')).toBe('boxmaze')
   })
 
   it('returns null for anything unrecognized', () => {

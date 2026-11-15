@@ -25,8 +25,8 @@ no custom domain). Same pattern as the coffee roasting tracker.
 ## v1 scope
 
 Name once, feed, pet and groom, litter, Play (matching puzzle, number
-game, and lights out, a fresh one picked at random each time Play is
-tapped), bedtime. The
+game, lights out, yarn-ball hunt, and the cardboard-box maze, a fresh
+one picked at random each time Play is tapped), bedtime. The
 kitty has a drawn face with moods, four colors, and little sounds.
 Growth and collectibles are deferred.
 
@@ -37,6 +37,8 @@ Play is random in normal use, but each game opens directly for testing:
 - Matching puzzle: https://tnargy.github.io/kittyApp/?game=matching
 - Number game: https://tnargy.github.io/kittyApp/?game=numbers
 - Lights out: https://tnargy.github.io/kittyApp/?game=lightsout
+- Yarn-ball hunt: https://tnargy.github.io/kittyApp/?game=yarnhunt
+- Cardboard-box maze: https://tnargy.github.io/kittyApp/?game=boxmaze
 
 The link opens that game on load (once a kitty exists). Play again
 after a win replays the same game.

@@ -93,7 +93,7 @@ export default function NumberGame({
       <p>
         🔢 {game.next - 1} of 9 found — find {game.next} next
       </p>
-      <div className="board numbers">
+      <div className="board three">
         {game.tiles.map((tile) => (
           <div
             key={tile.id}

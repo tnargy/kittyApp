@@ -7,6 +7,8 @@
 // The board lives in React state only (never persisted); only the win
 // bonus and the solved event are saved, via the existing paths.
 
+import { neighborsOf as gridNeighborsOf } from './grid'
+
 export interface Light {
   id: string
   on: boolean
@@ -34,16 +36,10 @@ function shuffle<T>(items: T[]): T[] {
   return shuffled
 }
 
-/** Positions are row-major: index = row * GRID_SIZE + col. */
+/** Orthogonal neighbors on this game's 5x5 board. Shared grid math
+ * lives in src/grid.ts; this is the lights-out-sized wrapper. */
 export function neighborsOf(index: number): number[] {
-  const row = Math.floor(index / GRID_SIZE)
-  const col = index % GRID_SIZE
-  const neighbors: number[] = []
-  if (col > 0) neighbors.push(index - 1)
-  if (col < GRID_SIZE - 1) neighbors.push(index + 1)
-  if (row > 0) neighbors.push(index - GRID_SIZE)
-  if (row < GRID_SIZE - 1) neighbors.push(index + GRID_SIZE)
-  return neighbors
+  return gridNeighborsOf(index, GRID_SIZE)
 }
 
 /**

@@ -60,7 +60,7 @@ export default function LightsOutGame({
       </button>
       <h1>Turn out the lights!</h1>
       <p>💡 {lightsOn(game)} lights left</p>
-      <div className="board lights">
+      <div className="board five">
         {game.lights.map((light, index) => (
           <button
             key={light.id}

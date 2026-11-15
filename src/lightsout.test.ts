@@ -6,7 +6,6 @@ import {
   LIGHT_COUNT,
   lightsOn,
   MIN_LIT,
-  neighborsOf,
   SCRAMBLE_MAX,
   SCRAMBLE_MIN,
   toggleLight,
@@ -62,34 +61,6 @@ describe('createLightsOut', () => {
       expect(checkWin(current.lights)).toBe(true)
       expect(current.won).toBe(true)
     }
-  })
-})
-
-describe('neighborsOf', () => {
-  it('a corner light has 2 neighbors', () => {
-    expect(neighborsOf(0).sort((a, b) => a - b)).toEqual([1, GRID_SIZE])
-    expect(neighborsOf(LIGHT_COUNT - 1).sort((a, b) => a - b)).toEqual([
-      LIGHT_COUNT - 1 - GRID_SIZE,
-      LIGHT_COUNT - 2,
-    ])
-  })
-
-  it('an edge light has 3 neighbors', () => {
-    expect(neighborsOf(2).sort((a, b) => a - b)).toEqual([
-      1,
-      3,
-      2 + GRID_SIZE,
-    ])
-  })
-
-  it('a center light has 4 neighbors', () => {
-    const center = 2 * GRID_SIZE + 2
-    expect(neighborsOf(center).sort((a, b) => a - b)).toEqual([
-      center - GRID_SIZE,
-      center - 1,
-      center + 1,
-      center + GRID_SIZE,
-    ])
   })
 })
 

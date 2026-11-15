@@ -8,13 +8,17 @@
 //   /kittyApp/?game=matching
 //   /kittyApp/?game=numbers
 //   /kittyApp/?game=lightsout
+//   /kittyApp/?game=yarnhunt
+//   /kittyApp/?game=boxmaze
 // The link opens that game on load (once a kitty exists). It is only for
 // testing — normal play is always random.
 
 import type { ComponentType } from 'react'
+import BoxMazeGame from './components/BoxMazeGame'
 import LightsOutGame from './components/LightsOutGame'
 import MatchingGame from './components/MatchingGame'
 import NumberGame from './components/NumberGame'
+import YarnHuntGame from './components/YarnHuntGame'
 import type { KittyColor } from './kitty'
 
 export interface GameProps {
@@ -24,14 +28,27 @@ export interface GameProps {
   onBack: () => void
 }
 
-export type GameId = 'matching' | 'numbers' | 'lightsout'
+export type GameId =
+  | 'matching'
+  | 'numbers'
+  | 'lightsout'
+  | 'yarnhunt'
+  | 'boxmaze'
 
-export const GAME_IDS: GameId[] = ['matching', 'numbers', 'lightsout']
+export const GAME_IDS: GameId[] = [
+  'matching',
+  'numbers',
+  'lightsout',
+  'yarnhunt',
+  'boxmaze',
+]
 
 export const GAMES: Record<GameId, ComponentType<GameProps>> = {
   matching: MatchingGame,
   numbers: NumberGame,
   lightsout: LightsOutGame,
+  yarnhunt: YarnHuntGame,
+  boxmaze: BoxMazeGame,
 }
 
 export const GAME_META: Record<
@@ -49,6 +66,14 @@ export const GAME_META: Record<
   lightsout: {
     eventType: 'lights-out-solved',
     solvedNote: (name) => `${name} turned out all the lights`,
+  },
+  yarnhunt: {
+    eventType: 'yarn-ball-found',
+    solvedNote: (name) => `${name} found the yarn ball`,
+  },
+  boxmaze: {
+    eventType: 'box-maze-solved',
+    solvedNote: (name) => `${name} helped the kitty through the box maze`,
   },
 }
 

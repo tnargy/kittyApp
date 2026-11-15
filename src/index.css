@@ -171,6 +171,14 @@ p {
     transition: none;
   }
 
+  .basket {
+    transition: none;
+  }
+
+  .maze-cell {
+    transition: none;
+  }
+
   .card.matched .card-inner,
   .kitty-face.celebrating {
     animation: none;
@@ -198,12 +206,20 @@ p {
   margin: 20px 0;
 }
 
-.board.numbers {
+.board.three {
   grid-template-columns: repeat(3, 1fr);
 }
 
-.board.lights {
+.board.five {
   grid-template-columns: repeat(5, 1fr);
+}
+
+/* The maze board: no gap, so adjacent cells' walls meet into single
+ * continuous lines. The grid supplies the outer right/bottom edges. */
+.board.maze {
+  gap: 0;
+  border-right: 3px solid #4a3f55;
+  border-bottom: 3px solid #4a3f55;
 }
 
 .light {
@@ -226,6 +242,65 @@ p {
 .light.on {
   background: #ffd93d;
   box-shadow: 0 0 16px 4px rgba(255, 217, 61, 0.7);
+}
+
+.basket {
+  aspect-ratio: 1;
+  min-height: 64px;
+  padding: 0;
+  background: #ff9f43;
+  border-radius: 12px;
+  font-size: 40px;
+  transition: background 0.3s;
+}
+
+.basket:focus-visible {
+  outline: 3px solid #4a3f55;
+  outline-offset: 2px;
+}
+
+.basket.peeked {
+  background: #f0e4d3;
+  border: 2px solid #e8c9a8;
+}
+
+.maze-cell {
+  aspect-ratio: 1;
+  min-height: 64px;
+  padding: 0;
+  background: #e8c9a8;
+  border-radius: 0;
+  font-size: 32px;
+  box-sizing: border-box;
+  transition: background 0.3s;
+}
+
+.maze-cell:focus-visible {
+  outline: 3px solid #4a3f55;
+  outline-offset: 2px;
+}
+
+.maze-cell.kitty {
+  background: #fff3d6;
+}
+
+.maze-cell.fish {
+  background: #fff;
+}
+
+/* Paw-print breadcrumbs: faint, so they stay clearly distinct from
+ * the kitty and the fish. */
+.maze-cell.visited .paw {
+  opacity: 0.45;
+  font-size: 20px;
+}
+
+/* The prize on a win screen (e.g. the yarn ball 🧶): a big emoji
+ * under the kitty face. */
+.prize {
+  font-size: 64px;
+  line-height: 1;
+  margin: 8px 0;
 }
 
 .card {

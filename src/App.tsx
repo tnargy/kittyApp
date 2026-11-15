@@ -153,9 +153,9 @@ export default function App() {
       )
       await saveKitty(visited)
       setKitty(visited)
-      // Test deep link (?game=matching / ?game=numbers / ?game=lightsout):
-      // open that game directly instead of picking at random. Normal
-      // play ignores it.
+      // Test deep link (?game=matching / ?game=numbers / ?game=lightsout /
+      // ?game=yarnhunt / ?game=boxmaze): open that game directly instead
+      // of picking at random. Normal play ignores it.
       const linked = gameFromParams(window.location.search)
       if (linked) {
         setGame(linked)
