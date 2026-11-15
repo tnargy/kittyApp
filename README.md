@@ -43,6 +43,11 @@ Play is random in normal use, but each game opens directly for testing:
 The link opens that game on load (once a kitty exists). Play again
 after a win replays the same game.
 
+Or open the hidden games index, which lists every game with its test
+link (not linked from anywhere in the app):
+
+- Games index: https://tnargy.github.io/kittyApp/games
+
 ## Develop
 
 ```sh

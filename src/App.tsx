@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import KittyFace, { type KittyMood } from './components/KittyFace'
+import GamesIndex from './components/GamesIndex'
 import { loadKitty, logEvent, saveKitty } from './db'
 import {
   GAME_META,
   GAMES,
   gameFromParams,
+  isGamesIndexPath,
   pickGame,
   type GameId,
 } from './games'
@@ -111,7 +113,7 @@ export default function App() {
   const [kitty, setKitty] = useState<KittyState | null | undefined>(undefined)
   const [message, setMessage] = useState('')
   const [surprise, setSurprise] = useState<string | null>(null)
-  const [view, setView] = useState<'kitty' | 'play'>('kitty')
+  const [view, setView] = useState<'kitty' | 'play' | 'games'>('kitty')
   const [game, setGame] = useState<GameId | null>(null)
   const [anim, setAnim] = useState<'idle' | 'happy' | 'purr'>('idle')
   const [soundOn, setSoundOnState] = useState(isSoundOn())
@@ -155,11 +157,15 @@ export default function App() {
       setKitty(visited)
       // Test deep link (?game=matching / ?game=numbers / ?game=lightsout /
       // ?game=yarnhunt / ?game=boxmaze): open that game directly instead
-      // of picking at random. Normal play ignores it.
+      // of picking at random. Normal play ignores it. The hidden games
+      // index (/kittyApp/games) shows the list of test links instead;
+      // a ?game= param on that path wins over the index.
       const linked = gameFromParams(window.location.search)
       if (linked) {
         setGame(linked)
         setView('play')
+      } else if (isGamesIndexPath(window.location.pathname)) {
+        setView('games')
       }
     })()
   }, [])
@@ -185,11 +191,14 @@ export default function App() {
     await logEvent('named', `Named the kitty ${name}`)
     setKitty(created)
     setMessage(`${name} is so happy to meet you!`)
-    // A fresh kitty named from a test deep link goes straight to the game.
+    // A fresh kitty named from a test deep link goes straight to the game;
+    // one named from the games index goes straight to the index.
     const linked = gameFromParams(window.location.search)
     if (linked) {
       setGame(linked)
       setView('play')
+    } else if (isGamesIndexPath(window.location.pathname)) {
+      setView('games')
     }
   }
 
@@ -252,6 +261,9 @@ export default function App() {
   }
   if (kitty === null) {
     return <Welcome onName={(name) => void handleName(name)} />
+  }
+  if (view === 'games') {
+    return <GamesIndex onBack={() => setView('kitty')} />
   }
   if (view === 'play' && game) {
     const Game = GAMES[game]

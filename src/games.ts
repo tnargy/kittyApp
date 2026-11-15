@@ -11,7 +11,9 @@
 //   /kittyApp/?game=yarnhunt
 //   /kittyApp/?game=boxmaze
 // The link opens that game on load (once a kitty exists). It is only for
-// testing — normal play is always random.
+// testing — normal play is always random. There is also a hidden games
+// index at /kittyApp/games that lists every game with its test link.
+// It is not linked from the kitty view.
 
 import type { ComponentType } from 'react'
 import BoxMazeGame from './components/BoxMazeGame'
@@ -77,6 +79,35 @@ export const GAME_META: Record<
   },
 }
 
+/** Display info for the hidden games index: a name and a one-line
+ * description per game. Lives in the registry so a new game comes
+ * with its index entry — nothing else needs a new branch. */
+export const GAME_INFO: Record<
+  GameId,
+  { name: string; blurb: string }
+> = {
+  matching: {
+    name: '🧩 Matching puzzle',
+    blurb: 'Flip the cards and find all 6 pairs',
+  },
+  numbers: {
+    name: '🔢 Number game',
+    blurb: 'Flip the tiles in order, 1 to 9',
+  },
+  lightsout: {
+    name: '💡 Lights out',
+    blurb: 'Tap the lights to turn them all out',
+  },
+  yarnhunt: {
+    name: '🧶 Yarn-ball hunt',
+    blurb: 'Peek in the baskets to find the yarn ball',
+  },
+  boxmaze: {
+    name: '📦 Cardboard-box maze',
+    blurb: 'Wander the maze and find the hidden fish',
+  },
+}
+
 export function pickGame(): GameId {
   return GAME_IDS[Math.floor(Math.random() * GAME_IDS.length)]
 }
@@ -88,4 +119,13 @@ export function gameFromParams(search: string): GameId | null {
   return (GAME_IDS as string[]).includes(game ?? '')
     ? (game as GameId)
     : null
+}
+
+/** Is this the hidden games index? True when the last path segment
+ * is `games` — `/kittyApp/games` and `/kittyApp/games/` both count,
+ * and so does a bare `/games`. Anything deeper (`/games/extra`) or
+ * any other page does not. */
+export function isGamesIndexPath(pathname: string): boolean {
+  const trimmed = pathname.replace(/\/+$/, '')
+  return trimmed.split('/').pop() === 'games'
 }

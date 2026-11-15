@@ -199,6 +199,43 @@ p {
   align-self: flex-start;
 }
 
+/* The hidden games index: a plain vertical list of test links. */
+.game-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.game-list a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #fff;
+  border: 2px solid #e8c9a8;
+  border-radius: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: #4a3f55;
+  text-align: left;
+}
+
+.game-list a strong {
+  font-size: 18px;
+}
+
+.game-list a span {
+  font-size: 14px;
+  color: #6b5f7a;
+}
+
+.game-list a:focus-visible {
+  outline: 3px solid #4a3f55;
+  outline-offset: 2px;
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
