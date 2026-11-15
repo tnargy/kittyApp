@@ -31,7 +31,11 @@ const STAGE_BODY: Record<
   kitten: {
     headScale: 1,
     headX: 20,
-    headY: 24,
+    // The head's visual bottom is its ellipse bottom (y=100 in face
+    // space), not the viewBox bottom — headY must reach the body top
+    // (bodyCy - bodyRy = 128) with overlap, or a thin gap of
+    // background shows between head and body.
+    headY: 32,
     eyeScale: 1.25,
     bodyRx: 26,
     bodyRy: 20,
@@ -44,7 +48,9 @@ const STAGE_BODY: Record<
   cat: {
     headScale: 0.85,
     headX: 29,
-    headY: 28,
+    // Scaled head bottom: 100 * 0.85 = 85; body top is 150 - 30 = 120,
+    // so headY 38 puts the head bottom at 123, overlapping the body.
+    headY: 38,
     eyeScale: 1,
     bodyRx: 36,
     bodyRy: 30,
@@ -57,7 +63,7 @@ const STAGE_BODY: Record<
   wise: {
     headScale: 0.85,
     headX: 29,
-    headY: 28,
+    headY: 38,
     eyeScale: 1,
     bodyRx: 36,
     bodyRy: 30,
