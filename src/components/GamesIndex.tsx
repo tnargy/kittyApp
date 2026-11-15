@@ -20,9 +20,14 @@ export default function GamesIndex({ onBack }: { onBack: () => void }) {
       <ul className="game-list">
         {GAME_IDS.map((id: GameId) => (
           <li key={id}>
-            {/* Relative to /kittyApp/games, ../ is the app root, so
-                this lands on the game's deep link, /kittyApp/?game=id. */}
-            <a href={`../?game=${id}`}>
+            {/* ./ resolves against the page URL's directory, so it
+                lands on the app root from /kittyApp/games (no
+                trailing slash: the browser treats `games` as a file
+                in /kittyApp/) and on /kittyApp/games/ with one —
+                where the ?game= param still wins over the index.
+                ../ would be wrong: from the slash-less URL it
+                climbs past the app root to the bare host. */}
+            <a href={`./?game=${id}`}>
               <strong>{GAME_INFO[id].name}</strong>
               <span>{GAME_INFO[id].blurb}</span>
             </a>

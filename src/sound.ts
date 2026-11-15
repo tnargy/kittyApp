@@ -68,10 +68,19 @@ function tone(
   osc.stop(start + duration + 0.05)
 }
 
-export function playSound(name: SoundName): void {
+/**
+ * Pitch for the mrrp (v2): the kitten's mrrp is higher, the Wise Cat's
+ * slower and deeper — Web Audio pitch is one parameter away.
+ */
+export function stageMrrpPitch(stage: 'kitten' | 'cat' | 'wise'): number {
+  return stage === 'kitten' ? 1.3 : stage === 'wise' ? 0.75 : 1
+}
+
+export function playSound(name: SoundName, opts?: { pitch?: number }): void {
   const ac = audio()
   if (!ac) return
   try {
+    const pitch = opts?.pitch ?? 1
     switch (name) {
       case 'pop':
         tone(ac, 600, 0.07, 'triangle')
@@ -83,7 +92,7 @@ export function playSound(name: SoundName): void {
         tone(ac, 400, 0.2, 'sine', 0, 200)
         break
       case 'mrrp':
-        tone(ac, 300, 0.18, 'sine', 0, 520)
+        tone(ac, 300 * pitch, 0.18, 'sine', 0, 520 * pitch)
         break
       case 'munch':
         tone(ac, 200, 0.06, 'triangle')

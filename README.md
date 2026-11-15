@@ -28,7 +28,12 @@ Name once, feed, pet and groom, litter, Play (matching puzzle, number
 game, lights out, yarn-ball hunt, and the cardboard-box maze, a fresh
 one picked at random each time Play is tapped), bedtime. The
 kitty has a drawn face with moods, four colors, and little sounds.
-Growth and collectibles are deferred.
+Growth is live (v2): the kitty grows through life stages — Kitten,
+Young Cat, Wise Cat — as the days of care add up, with a full-body
+drawing and a different idle animation per stage. Once she is Wise,
+a new kitten can join the family when the child says so, and the elder
+retires to the Family row with a tappable memory line from her life.
+Collectibles are still deferred.
 
 ## Test deep links
 

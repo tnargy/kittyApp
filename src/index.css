@@ -570,3 +570,264 @@ button:disabled {
   font-size: 15px;
   margin-top: 24px;
 }
+
+/* --- v2: the full-body kitty on the kitty view. Additive — the
+ * .kitty-face rules stay for the win screens, which still use the
+ * face, and .face-wrap stays the anchor for .snack / .heart. --- */
+.kitty-wrap {
+  line-height: 1.1;
+}
+
+.kitty-wrap svg {
+  width: 150px;
+  height: 175px;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Stage idle animations, on the body svg. These come first; the
+ * sleeping override below wins by source order (same specificity). */
+.kitty-wrap.stage-kitten svg {
+  animation: kitten-bounce 2s ease-in-out infinite;
+}
+
+.kitty-wrap.stage-cat svg {
+  animation: cat-sway 3s ease-in-out infinite;
+}
+
+.kitty-wrap.stage-wise svg {
+  animation: wise-rest 4.5s ease-in-out infinite;
+}
+
+/* Slow breathing while asleep replaces the stage idle. */
+.kitty-wrap.sleeping svg {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+/* Reaction animations, on the wrapper — same keyframes as the face,
+ * layered over the body's own idle animation. */
+.kitty-wrap.happy {
+  animation: wiggle 0.6s ease-in-out 2;
+}
+
+.kitty-wrap.purr {
+  animation: purr 0.18s ease-in-out infinite;
+}
+
+/* The kitten hops once when fed (a one-shot on the 1200 ms anim timer). */
+.kitty-wrap.hop {
+  animation: hop 0.6s ease-in-out 1;
+}
+
+/* The young cat's tail swishes; the wise cat's tail is still, and so
+ * is any sleeping kitty's. transform-origin pins the swish to the
+ * tail's base, not the SVG corner. */
+.kitty-wrap.stage-cat .tail {
+  animation: tail-swish 2.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: left bottom;
+}
+
+.kitty-wrap.sleeping .tail {
+  animation: none;
+}
+
+/* The wise cat blinks slowly, so calm never reads as sleepy. */
+.kitty-wrap.stage-wise .eyes {
+  animation: wise-blink 4.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Playful bounce with a slight tilt for the kitten. */
+@keyframes kitten-bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-3deg);
+  }
+}
+
+/* Slow breathing plus a gentle sway for the young cat. */
+@keyframes cat-sway {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.02);
+  }
+}
+
+/* Very slow breathing for the wise cat. */
+@keyframes wise-rest {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes tail-swish {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-12deg);
+  }
+}
+
+@keyframes hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-18px);
+  }
+  60% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes wise-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.08);
+  }
+  97% {
+    transform: scaleY(1);
+  }
+}
+
+/* Gentle growth hint under the kitty's name — words, never a number. */
+.growth-hint {
+  color: #9a8ba8;
+  font-size: 15px;
+  font-style: italic;
+  margin: 4px 0 0;
+}
+
+/* The growth celebration's "then and now": the old body small and
+ * faded, an arrow, the new body large and animated. */
+.growth-bodies {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.growth-old svg {
+  width: 64px;
+  height: 76px;
+  opacity: 0.7;
+}
+
+.growth-arrow {
+  font-size: 28px;
+  padding-bottom: 40px;
+}
+
+/* The arrival prompt on the kitty view (once she is Wise). */
+.arrival-prompt {
+  margin-top: 24px;
+  background: #fff3d6;
+  border: 2px dashed #ffcf5c;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.arrival-prompt p {
+  margin: 0 0 10px;
+}
+
+/* The duplicate-name warning on the arrival naming form. */
+.duplicate-warning {
+  background: #fff3d6;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 15px;
+}
+
+/* The Family row: retired kitties, tappable memory portraits. */
+.family-row {
+  margin-top: 28px;
+  border-top: 2px solid #f0e4d3;
+  padding-top: 12px;
+}
+
+.family-row h2 {
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+
+.family-members {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  justify-content: center;
+  padding-bottom: 8px;
+}
+
+.family-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.family-portrait {
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: inherit;
+}
+
+/* Portraits never bob — the face's idle animation is for live kitties. */
+.family-row .kitty-face {
+  animation: none;
+}
+
+.family-row .kitty-face svg {
+  width: 48px;
+  height: 44px;
+}
+
+.family-name {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.family-line {
+  font-size: 13px;
+  color: #6b5f7a;
+  margin: 6px 0 0;
+  font-style: italic;
+  min-height: 2em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kitty-wrap {
+    animation: none;
+  }
+
+  .kitty-wrap svg,
+  .kitty-wrap .tail,
+  .kitty-wrap .eyes {
+    animation: none;
+  }
+}

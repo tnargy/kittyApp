@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import KittyFace, { type KittyMood } from './components/KittyFace'
+import ArrivalMoment from './components/ArrivalMoment'
+import FamilyRow from './components/FamilyRow'
 import GamesIndex from './components/GamesIndex'
-import { loadKitty, logEvent, saveKitty } from './db'
+import GrowthMoment from './components/GrowthMoment'
+import KittyBody from './components/KittyBody'
+import { type KittyMood } from './components/kittyArt'
+import {
+  listEventKinds,
+  listFamily,
+  loadActiveKitty,
+  logEvent,
+  saveKitty,
+  welcomeNewKitten,
+} from './db'
 import {
   GAME_META,
   GAMES,
@@ -11,16 +22,27 @@ import {
   type GameId,
 } from './games'
 import {
+  GROWTH_COPY,
   applyAction,
   applyPuzzleWin,
+  checkGrowth,
   decayKitty,
+  growthHint,
   initialKitty,
+  normalizeKitty,
   returnSurprise,
   type KittyAction,
   type KittyColor,
+  type KittyStage,
   type KittyState,
 } from './kitty'
-import { isSoundOn, playSound, setSoundOn, type SoundName } from './sound'
+import {
+  isSoundOn,
+  playSound,
+  setSoundOn,
+  stageMrrpPitch,
+  type SoundName,
+} from './sound'
 import './index.css'
 
 const ACTION_SOUNDS: Record<KittyAction, SoundName> = {
@@ -34,7 +56,7 @@ const ACTION_SOUNDS: Record<KittyAction, SoundName> = {
 
 function moodFor(kitty: KittyState, anim: string): KittyMood {
   if (kitty.sleeping) return 'sleepy'
-  if (anim === 'happy' || anim === 'purr') return 'happy'
+  if (anim === 'happy' || anim === 'purr' || anim === 'hop') return 'happy'
   if (kitty.hunger < 40) return 'hungry'
   return 'idle'
 }
@@ -55,6 +77,15 @@ const ACTION_MESSAGES: Record<KittyAction, string> = {
   cleanLitter: 'has a fresh, cozy litter box.',
   bedtime: 'curls up and drifts off. Shhh…',
   wake: 'stretches and blinks awake!',
+}
+
+/** A fresh color for a new kitten — never the elder's, so the
+ * generations look distinct. */
+const PALETTE_COLORS: KittyColor[] = ['orange', 'grey', 'midnight', 'calico']
+
+function freshColor(except: KittyColor): KittyColor {
+  const others = PALETTE_COLORS.filter((c) => c !== except)
+  return others[Math.floor(Math.random() * others.length)]
 }
 
 function NeedBar({
@@ -111,14 +142,28 @@ function Welcome({ onName }: { onName: (name: string) => void }) {
 
 export default function App() {
   const [kitty, setKitty] = useState<KittyState | null | undefined>(undefined)
+  const [family, setFamily] = useState<KittyState[]>([])
+  const [eventKinds, setEventKinds] = useState<string[]>([])
   const [message, setMessage] = useState('')
   const [surprise, setSurprise] = useState<string | null>(null)
-  const [view, setView] = useState<'kitty' | 'play' | 'games'>('kitty')
+  const [view, setView] = useState<
+    'kitty' | 'play' | 'games' | 'growth' | 'arrival'
+  >('kitty')
   const [game, setGame] = useState<GameId | null>(null)
-  const [anim, setAnim] = useState<'idle' | 'happy' | 'purr'>('idle')
+  const [anim, setAnim] = useState<'idle' | 'happy' | 'purr' | 'hop'>('idle')
   const [soundOn, setSoundOnState] = useState(isSoundOn())
   const [hearts, setHearts] = useState<{ id: number; x: number }[]>([])
   const [snack, setSnack] = useState(false)
+  /** The stage a growth celebration is showing (or will show, once a
+   * game win screen is dismissed). */
+  const [growthStage, setGrowthStage] = useState<
+    Exclude<KittyStage, 'kitten'> | null
+  >(null)
+  const [pendingGrowth, setPendingGrowth] = useState<
+    Exclude<KittyStage, 'kitten'> | null
+  >(null)
+  /** "Not yet" on the arrival prompt — session only, never persisted. */
+  const [arrivalDismissed, setArrivalDismissed] = useState(false)
   const animTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const kittyRef = useRef<KittyState | null>(null)
 
@@ -136,17 +181,25 @@ export default function App() {
 
   useEffect(() => {
     void (async () => {
-      const saved = await loadKitty()
+      // Load order (pinned by the growth spec): family + events →
+      // active kitty → decay → growth check (one stage,
+      // persist-first) → arrival check → return surprise (suppressed
+      // on a growth/arrival load) → ?game= / games-index (suppressed
+      // while a growth celebration or arrival moment is pending).
+      const family = await listFamily()
+      setFamily(family)
+      setEventKinds(await listEventKinds())
+      const saved = await loadActiveKitty()
       if (!saved) {
+        // No active kitty: first run, or the crash-recovery case (a
+        // retired elder exists) — the render picks the Welcome variant.
         setKitty(null)
         return
       }
       const now = Date.now()
-      const surprise = returnSurprise(saved.lastVisitAt, now)
-      if (surprise) setSurprise(surprise)
       const visited = decayKitty(
         {
-          ...saved,
+          ...normalizeKitty(saved),
           lastVisitAt: now,
           color: saved.color ?? 'orange',
           lastDecayAt: saved.lastDecayAt ?? saved.lastVisitAt,
@@ -154,7 +207,24 @@ export default function App() {
         now,
       )
       await saveKitty(visited)
-      setKitty(visited)
+      const { kitty: grown, crossed } = checkGrowth(visited)
+      if (crossed) {
+        // Persist the new stage before celebrating, so a reload
+        // mid-celebration never re-fires it.
+        await saveKitty(grown)
+        await logEvent('grew-up', GROWTH_COPY[crossed].eventNote(grown.name))
+        setKitty(grown)
+        setGrowthStage(crossed)
+        setView('growth')
+        return
+      }
+      setKitty(grown)
+      if (grown.arrivalPending) {
+        setView('arrival')
+        return
+      }
+      const surprise = returnSurprise(saved.lastVisitAt, now)
+      if (surprise) setSurprise(surprise)
       // Test deep link (?game=matching / ?game=numbers / ?game=lightsout /
       // ?game=yarnhunt / ?game=boxmaze): open that game directly instead
       // of picking at random. Normal play ignores it. The hidden games
@@ -202,6 +272,30 @@ export default function App() {
     }
   }
 
+  /** Name the new kitten after the arrival moment: retire the elder
+   * and activate the kitten atomically, then show the kitty view. */
+  async function handleArrivalName(elder: KittyState, name: string) {
+    const created = { ...initialKitty(name), color: freshColor(elder.color) }
+    await welcomeNewKitten(elder, created)
+    await logEvent('kitten-arrived', 'A new kitten joined the family!')
+    await logEvent('retired', `${elder.name} retired to the sunny spot.`)
+    setFamily(await listFamily())
+    setEventKinds(await listEventKinds())
+    setKitty(created)
+    setMessage(`${created.name} is so happy to meet you!`)
+    setView('kitty')
+  }
+
+  /** "Say hello" on the arrival prompt: remember the choice (so a
+   * closed tab re-opens the arrival moment) and show it. */
+  async function handleSayHello() {
+    if (!kitty) return
+    const next = { ...kitty, arrivalPending: true }
+    await saveKitty(next)
+    setKitty(next)
+    setView('arrival')
+  }
+
   async function handleAction(action: KittyAction) {
     if (!kitty) return
     const next = applyAction(kitty, action)
@@ -209,7 +303,12 @@ export default function App() {
     await logEvent(action, `${kitty.name} — ${ACTION_MESSAGES[action]}`)
     setKitty(next)
     setMessage(`${kitty.name} ${ACTION_MESSAGES[action]}`)
-    playSound(ACTION_SOUNDS[action])
+    playSound(
+      ACTION_SOUNDS[action],
+      action === 'pet' || action === 'groom'
+        ? { pitch: stageMrrpPitch(next.stage) }
+        : undefined,
+    )
     if (action === 'feed') {
       setSnack(true)
       setTimeout(() => setSnack(false), 1000)
@@ -222,10 +321,27 @@ export default function App() {
       setHearts(burst)
       setTimeout(() => setHearts([]), 1200)
     }
-    // Brief reaction animation, then back to the idle bob.
+    // Brief reaction animation, then back to the idle animation. The
+    // kitten hops when fed; every other stage wiggles happily.
     if (animTimer.current) clearTimeout(animTimer.current)
-    setAnim(action === 'pet' ? 'purr' : 'happy')
+    setAnim(
+      action === 'pet'
+        ? 'purr'
+        : action === 'feed' && next.stage === 'kitten'
+          ? 'hop'
+          : 'happy',
+    )
     animTimer.current = setTimeout(() => setAnim('idle'), 1200)
+    // A care moment can cross a growth threshold: persist the new stage
+    // first, then show the growth moment.
+    const { kitty: grown, crossed } = checkGrowth(next)
+    if (crossed) {
+      await saveKitty(grown)
+      await logEvent('grew-up', GROWTH_COPY[crossed].eventNote(grown.name))
+      setKitty(grown)
+      setGrowthStage(crossed)
+      setView('growth')
+    }
   }
 
   async function handleColor(color: KittyColor) {
@@ -250,6 +366,25 @@ export default function App() {
     await logEvent(eventType, note)
     setKitty(next)
     playSound('chime')
+    // A win can cross a growth threshold, but the game's win screen is
+    // showing — the growth moment waits until it is dismissed.
+    const { kitty: grown, crossed } = checkGrowth(next)
+    if (crossed) {
+      await saveKitty(grown)
+      await logEvent('grew-up', GROWTH_COPY[crossed].eventNote(grown.name))
+      setKitty(grown)
+      setPendingGrowth(crossed)
+    }
+  }
+
+  function handleGameBack() {
+    if (pendingGrowth) {
+      setGrowthStage(pendingGrowth)
+      setPendingGrowth(null)
+      setView('growth')
+    } else {
+      setView('kitty')
+    }
   }
 
   if (kitty === undefined) {
@@ -260,6 +395,21 @@ export default function App() {
     )
   }
   if (kitty === null) {
+    // No active kitty: first run, or the crash-recovery case — a retired
+    // elder exists, so the arrival naming form shows instead of the
+    // plain first-run Welcome.
+    const retired = family.filter((k) => k.status === 'retired')
+    if (retired.length > 0) {
+      const elder = retired[retired.length - 1]
+      return (
+        <ArrivalMoment
+          elder={elder}
+          familyNames={family.map((k) => k.name)}
+          onName={(name) => void handleArrivalName(elder, name)}
+          startAtNaming
+        />
+      )
+    }
     return <Welcome onName={(name) => void handleName(name)} />
   }
   if (view === 'games') {
@@ -275,11 +425,31 @@ export default function App() {
         onWin={() =>
           void handleGameWin(meta.eventType, meta.solvedNote(kitty.name))
         }
-        onBack={() => setView('kitty')}
+        onBack={handleGameBack}
+      />
+    )
+  }
+  if (view === 'growth' && growthStage) {
+    return (
+      <GrowthMoment
+        kittyName={kitty.name}
+        kittyColor={kitty.color}
+        toStage={growthStage}
+        onDone={() => setView('kitty')}
+      />
+    )
+  }
+  if (view === 'arrival') {
+    return (
+      <ArrivalMoment
+        elder={kitty}
+        familyNames={family.map((k) => k.name)}
+        onName={(name) => void handleArrivalName(kitty, name)}
       />
     )
   }
 
+  const hint = growthHint(kitty)
   return (
     <main className="kitty-view">
       <button
@@ -297,10 +467,15 @@ export default function App() {
       )}
       <div className="face-wrap">
         <div
-          className={`kitty-face ${kitty.sleeping ? 'sleeping' : anim}`}
+          className={`kitty-wrap stage-${kitty.stage} ${kitty.sleeping ? 'sleeping' : anim}`}
           aria-hidden
         >
-          <KittyFace color={kitty.color} mood={moodFor(kitty, anim)} />
+          <KittyBody
+            color={kitty.color}
+            mood={moodFor(kitty, anim)}
+            stage={kitty.stage}
+            name={kitty.name}
+          />
         </div>
         {snack && (
           <span className="snack" aria-hidden>
@@ -319,6 +494,7 @@ export default function App() {
         ))}
       </div>
       <h1>{kitty.name}</h1>
+      {hint && <p className="growth-hint">{hint}</p>}
       {message && <p className="message">{message}</p>}
 
       <div className="needs">
@@ -379,6 +555,22 @@ export default function App() {
           </>
         )}
       </div>
+
+      {kitty.stage === 'wise' && !kitty.arrivalPending && !arrivalDismissed && (
+        <div className="arrival-prompt">
+          <p>🐱 A new kitten is ready to join the family!</p>
+          <div className="actions">
+            <button type="button" onClick={() => void handleSayHello()}>
+              Say hello
+            </button>
+            <button type="button" onClick={() => setArrivalDismissed(true)}>
+              Not yet
+            </button>
+          </div>
+        </div>
+      )}
+
+      <FamilyRow family={family} eventKinds={eventKinds} />
     </main>
   )
 }
